@@ -74,6 +74,15 @@ class epistatis():
         perform the logistic regression for the two models. The first one "aditive model"
         contain just the values for the two SNPs, the secong model the "interaction model"
         contin the two SNPs plus the interaction term. for every of the model
+
+        Aguments
+        --------
+        matrix: str
+            matrix processed byt create_pheno+dose.py script
+        snp1: str
+            name of the SNP from anchor A
+        snp2: str
+            name of the SNP from anchor B
         """
 
 
