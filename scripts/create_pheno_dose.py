@@ -21,6 +21,7 @@ $python create_pheno+dose.py -h
 """
 
 import pandas as pd
+import numpy as np
 import sys
 import os
 import argparse
@@ -34,8 +35,7 @@ class create_pheno_dosage():
         Initiate the class
         """
 
-    def preprocess_matrix(self, MAF, Rsq, PHENO, DOSE,
-                          output="../pheno+dose/"+output):
+    def preprocess_matrix(self, MAF, Rsq, PHENO, DOSE):
         """
         This function takes phenotype and dosage files and
         merge them into a single matrix to do the epistasis analysis
@@ -74,8 +74,8 @@ class create_pheno_dosage():
 
         output = output_dose+"+"+output_pheno
 
-        if not os.path.isdir("../pheno+dose/"):
-            os.mkdir("../pheno+dose/")
+        if not os.path.isdir("../tests/pheno+dose/"):
+            os.mkdir("../tests/pheno+dose/")
 
         pheno = pd.read_csv(PHENO, sep=" ")
         dose = pd.read_csv(DOSE, sep=" ")
@@ -99,15 +99,25 @@ class create_pheno_dosage():
         dose.set_index("uniqueSNP", inplace=True)
         dose = dose.transpose()
 
-
         pheno = pheno.drop(["FID"], axis=1)
         pheno = pheno.set_index("IID")
 
+        #convert control and cases into 0 and 1
+
+        def phenotype(x):
+            if x=="Case":
+                return "1.0"
+            else:
+                return "0.0"
+
+        pheno["case_control"] = pheno["PHENO"].apply(phenotype)
+        pheno.drop(["PHENO"],axis=1, inplace=True)
+
         pheno_dose = pd.concat([pheno,dose], join="inner", axis=1)
 
-        pheno_dose.to_csv("../pheno+dose/"+output, sep="\t")
+        pheno_dose.to_csv("../tests/pheno+dose/"+output, sep="\t")
 
-if __name__ == "__name__":
+if __name__ == "__main__":
 
     #set up the command line parameters
     PARSER = argparse.ArgumentParser(
@@ -143,5 +153,10 @@ if __name__ == "__name__":
     PHENO = ARGS.pheno
     DOSE = ARGS.dose
 
-    create_pheno_dosage_hndl = create_pheno_dosage()
-    create_pheno_dosage_hndl.preprocess_matrix(MAF, Rsq, PHENO, DOSE)
+    if len(sys.argv) < 2:
+        PARSER.print_usage()
+        sys.exit(1)
+
+    else:
+        create_pheno_dosage_hndl = create_pheno_dosage()
+        create_pheno_dosage_hndl.preprocess_matrix(MAF, Rsq, PHENO, DOSE)
